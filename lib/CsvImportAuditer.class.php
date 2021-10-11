@@ -43,7 +43,6 @@ class CsvImportAuditer
     // Default options
     protected $options = [
         'errorLog' => null,
-        'sourceName' => null,
         'progressFrequency' => 1
     ];
 
