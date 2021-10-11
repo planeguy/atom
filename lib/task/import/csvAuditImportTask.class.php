@@ -42,6 +42,7 @@ class csvAuditImportTask extends arBaseTask
             $auditOptions
         );
 
+        $auditer->setSourceName($arguments['sourcename']);
         $auditer->setFilename($arguments['filename']);
 
         $this->log(sprintf(
@@ -65,6 +66,11 @@ class csvAuditImportTask extends arBaseTask
     protected function configure()
     {
         $this->addArguments([
+            new sfCommandArgument(
+                'sourcename',
+                sfCommandArgument::REQUIRED,
+                'The source name of the previous import.'
+            ),
             new sfCommandArgument(
                 'filename',
                 sfCommandArgument::REQUIRED,
@@ -97,10 +103,10 @@ class csvAuditImportTask extends arBaseTask
 
             // Audit options
             new sfCommandOption(
-                'source-name',
+                'id-column-name',
                 null,
                 sfCommandOption::PARAMETER_REQUIRED,
-                'Source name to use when inserting keymap entries'
+                'Name of the ID column in the source CSV file (default: "legacyId")'
             ),
         ]);
 
@@ -108,7 +114,8 @@ class csvAuditImportTask extends arBaseTask
         $this->name = 'audit-import';
         $this->briefDescription = 'Audit CSV import.';
         $this->detailedDescription = <<<'EOF'
-Audit CSV import
+Audit CSV import by checking to make sure a keymap has been created for each
+row.
 EOF;
     }
 
@@ -121,12 +128,10 @@ EOF;
 
     protected function setAuditOptions($options)
     {
-        $this->validateOptions($options);
-
         $opts = [];
 
         $keymap = [
-            'source-name' => 'sourceName',
+            'id-column-name' => 'idColumnName',
         ];
 
         foreach ($keymap as $oldkey => $newkey) {
@@ -138,18 +143,5 @@ EOF;
         }
 
         return $opts;
-    }
-
-    protected function validateOptions($options)
-    {
-        /*
-        if ($options['skip-unmatched'] && !$options['update']) {
-            $msg = <<<'EOM'
-The --skip-unmatched option can not be used without the --update option.
-EOM;
-
-            throw new sfException($msg);
-        }
-        */
     }
 }

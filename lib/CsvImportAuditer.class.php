@@ -31,7 +31,9 @@ class CsvImportAuditer
     protected $dbcon;
     protected $offset = 0;
     protected $errorLogHandle;
+    protected $sourceName;
     protected $filename;
+    protected $idColumnName;
     protected $ormClasses;
     protected $reader;
     protected $rowsAudited = 0;
@@ -42,6 +44,7 @@ class CsvImportAuditer
     protected $options = [
         'errorLog' => null,
         'sourceName' => null,
+        'progressFrequency' => 1
     ];
 
     //
@@ -102,6 +105,11 @@ class CsvImportAuditer
     public function setOrmClasses(array $classes)
     {
         $this->ormClasses = $classes;
+    }
+
+    public function setSourceName($sourceName)
+    {
+        $this->sourceName = $sourceName;
     }
 
     public function setFilename($filename)
@@ -199,9 +207,17 @@ class CsvImportAuditer
             }
 
             ++$this->rowsAudited;
-            #$this->log($this->progressUpdate($this->rowsImported, $data));
-            #$this->log($this->progressUpdate($this->rowsImported, $data));
-            $this->log('.');
+            $this->log($this->progressUpdate($this->rowsAudited, $data));
+        }
+
+        if (!empty($this->missingIds)) {
+            $this->log('');
+            $this->log('Source IDs not found in keymap data:');
+
+            foreach ($this->missingIds as $sourceId => $rowNumber)
+            {
+                $this->log(sprintf('* %d (row %d)', $sourceId, $rowNumber));
+            }
         }
     }
 
@@ -220,20 +236,23 @@ class CsvImportAuditer
 
     public function processRow($data)
     {
-        # TODO: make ID column name an option
-        if (empty($data['ARCH_DESC_ID'])) {
-            throw new UnexpectedValueException('No ID column found');
+        // Determine column name to check
+        $idColumnName = (!empty($this->getOption('idColumnName')))
+            ? $this->getOption('idColumnName')
+            : 'legacyId';
+
+        // Throw error if not ID value is found
+        if (empty($data[$idColumnName])) {
+            throw new UnexpectedValueException(sprintf('ID column %s not found', $idColumnName));
         }
 
-        $sourceId = $data['ARCH_DESC_ID'];
+        // Attempt to fetch keymap entry corresponding to source ID
+        $sourceId = $data[$idColumnName];
 
-        if (null === $targetId = getTargetId($this->getOption('sourceName'), $sourceId))
+        if (null === $targetId = $this->getTargetId($this->sourceName, $sourceId))
         {
-            #$missingIds[$sourceId] = $data[$titleIndex];
-            $this->missingIds[$sourceId] = true;
+            $this->missingIds[$sourceId] = $this->rowsAudited + 1;
         }
-
-        return $prow;
     }
 
     public function savePhysicalobjects($data)
@@ -275,9 +294,8 @@ class CsvImportAuditer
 
         $result = $statement->fetch();
 
-        if ($result !== null)
+        if (!empty($result))
         {
-            print 'Target ID:'. $result['target_id'] ."\n";
             return $result['target_id'];
         }
     }
@@ -298,15 +316,13 @@ class CsvImportAuditer
 
     protected function log($msg)
     {
-        if (!$this->getOption('quiet')) {
-            echo $msg.PHP_EOL;
-        }
+        echo $msg.PHP_EOL;
     }
 
     protected function logError($msg)
     {
-        // Write to error log (but not STDERR) even in quiet mode
-        if (!$this->getOption('quiet') || STDERR != $this->getErrorLogHandle()) {
+        // Write to error log (but not STDERR)
+        if (STDERR != $this->getErrorLogHandle()) {
             fwrite($this->getErrorLogHandle(), $msg.PHP_EOL);
         }
     }
@@ -354,5 +370,28 @@ class CsvImportAuditer
         }
 
         return $records;
+    }
+
+    public function progressUpdate($count, $data)
+    {
+        $freq = $this->getOption('progressFrequency');
+
+        if (1 == $freq) {
+            $msg = 'Row [%u/%u] audited';
+
+            $output = sprintf(
+                $msg,
+                $count,
+                $this->rowsTotal
+            );
+        } elseif ($freq > 1 && 0 == $count % $freq) {
+            $output = sprintf(
+                'Audited %u of %u rows...',
+                $count,
+                $this->rowsTotal
+            );
+        }
+
+        return $output;
     }
 }
