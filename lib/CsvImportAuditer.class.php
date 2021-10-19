@@ -248,7 +248,7 @@ class CsvImportAuditer
         // Attempt to fetch keymap entry corresponding to source ID
         $sourceId = $data[$idColumnName];
 
-        if (null === $targetId = $this->getTargetId($this->sourceName, $sourceId))
+        if (false === $targetId = $this->ormClasses['keymap']::getTargetId($this->sourceName, $sourceId))
         {
             $this->missingIds[$sourceId] = $this->rowsAudited + 1;
         }
@@ -285,6 +285,7 @@ class CsvImportAuditer
     // Protected methods
     //
 
+    /*
     protected function getTargetId($sourceName, $sourceId)
     {
         $sql = "SELECT target_id FROM keymap WHERE source_name=? AND target_name=? AND source_id=?";
@@ -298,6 +299,7 @@ class CsvImportAuditer
             return $result['target_id'];
         }
     }
+    */
 
     protected function updateInfoObjRelations($physobj, $informationObjectIds)
     {

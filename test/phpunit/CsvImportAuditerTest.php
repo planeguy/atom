@@ -112,40 +112,14 @@ class CsvImportAuditerTest extends \PHPUnit\Framework\TestCase
         ];
     }
 
-    /*
     public function processRowProvider()
     {
         $inputs = [
             // Leading and trailing whitespace is intentional
             [
-                'legacyId' => 'B10101 ',
-                'name' => ' DJ001',
-                'type' => 'Boîte Hollinger ',
-                'location' => ' Voûte, étagère 0074',
-                'culture' => 'fr ',
-                'descriptionSlugs' => ' test-fonds-1 | test-collection ',
-            ],
-            [
-                'legacyId' => ' ',
-                'name' => 'DJ002 ',
-                'type' => 'Folder',
-                'location' => 'Aisle 25, Shelf D',
-                // Test case insensitivity (should match 'en')
-                'culture' => 'EN',
-                // Slugs are case sensitive
-                'descriptionSlugs' => '|Mixed-Case-Fonds|no-match|',
-            ],
-            [
-                'name' => 'DJ003',
-                'location' => 'Aisle 11, Shelf J',
-            ],
-            [
-                'legacyId' => '',
-                'name' => 'DJ004',
-                'type' => '',
-                'location' => '',
-                'culture' => '',
-                'descriptionSlugs' => '',
+                'legacyId' => '3',
+                'title' => 'Example Title',
+                'culture' => 'en',
             ],
         ];
 
@@ -191,7 +165,6 @@ class CsvImportAuditerTest extends \PHPUnit\Framework\TestCase
             [$inputs[3], $expectedResults[3]],
         ];
     }
-    */
 
     // Tests
 
@@ -438,20 +411,23 @@ class CsvImportAuditerTest extends \PHPUnit\Framework\TestCase
     }
     */
 
-    /*
-    
-    @dataProvider processRowProvider
-   
-    @param mixed $data
-    @param mixed $expectedResult
-
+    /**
+     * @dataProvider processRowProvider
+     *
+     * @param mixed $data
+     * @param mixed $expectedResult
+     */
     public function testProcessRow($data, $expectedResult)
     {
-        $importer = new PhysicalObjectCsvImporter(
+print_r($data);
+print_r($expectedResult);
+        $importer = new CsvImportAuditer(
             $this->context,
             $this->vdbcon,
-            ['defaultCulture' => 'en']
+            ['idColumnName' => 'legacyId']
         );
+
+        /*
         $importer->typeIdLookupTable = $this->typeIdLookupTableFixture;
         $importer->setOrmClasses($this->ormClasses);
         $importer->setOption('quiet', true);
@@ -463,8 +439,11 @@ class CsvImportAuditerTest extends \PHPUnit\Framework\TestCase
         ksort($result);
 
         $this->assertSame($expectedResult, $result);
+        */
+        $this->assertSame(1, 1);
     }
 
+    /*
     public function testProcessRowThrowsExceptionIfNoNameOrLocation()
     {
         $this->expectException(UnexpectedValueException::class);
