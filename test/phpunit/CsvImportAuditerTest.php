@@ -266,7 +266,7 @@ class CsvImportAuditerTest extends \PHPUnit\Framework\TestCase
      */
     public function testSetOptions($options, $expected)
     {
-        $importer = new PhysicalObjectCsvImporter($this->context, $this->vdbcon);
+        $importer = new CsvImportAuditer($this->context, $this->vdbcon);
         $importer->setOptions($options);
         $this->assertSame($expected, $importer->getOptions());
     }
