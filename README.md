@@ -1,3 +1,5 @@
+# This is a fork of Atom Stable 2.6 to allow positioned watermarking (to do)
+
 # [Access to Memory](https://www.accesstomemory.org)
 
 Developed and maintained by [Artefactual Systems](https://www.artefactual.com/)
